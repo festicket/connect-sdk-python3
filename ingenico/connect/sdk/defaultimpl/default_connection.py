@@ -118,7 +118,7 @@ class DefaultConnection(PooledConnection):
         request = requests.Request(method, url, headers=headers, data=body,
                                    hooks={'response': self._log_response})
         prepped_request = self.__requests_session.prepare_request(request)
-        prepped_request.timestamp = time.clock()  # add timestamp to request for later reference
+        prepped_request.timestamp = time.perf_counter()  # add timestamp to request for later reference
         _id = str(uuid.uuid4())
         prepped_request.id = _id  # store random id in request so it can be matched with its response in logging
         self._log_request(prepped_request)
@@ -186,7 +186,7 @@ class DefaultConnection(PooledConnection):
             return
         request = response.request
         _id = request.id
-        duration = time.clock() - request.timestamp
+        duration = time.perf_counter() - request.timestamp
         status_code = response.status_code
         try:
             message = ResponseLogMessage(request_id=_id,
@@ -210,7 +210,7 @@ class DefaultConnection(PooledConnection):
         """Log communication errors when logging is enabled"""
         logger = self.logger
         if logger:
-            end_time = time.clock()
+            end_time = time.perf_counter()
             duration = end_time - start_time
             logger.log(
                 "Error occurred for outgoing request (requestId='{}', {} s)".format(
